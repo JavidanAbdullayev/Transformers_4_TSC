@@ -150,23 +150,25 @@ def plot_metrics(history, save_path, epochs, metrics=None, with_val=True):
     if metrics == None:
         # Plot all metrics
         metrics = history.keys()
-
+        print('metrics: ', metrics)
     # Remove val metrics
     regex = re.compile(r'val_.*')
     metrics = [m for m in metrics if not regex.match(m)]
-
+    print('metrics later: ', metrics)
     for m in metrics:
         if m in history.keys():# and 'val_'+m in history.keys():
             # Plot
             plt.figure(figsize=(6, 3))
             plt.plot(history[m], color='blue')
-            plt.plot(history['val_'+m], color='darkorange')
             
-            if with_val:
+            if with_val and m not in ['lr']:
                 plt.plot(history['val_' + m], color='darkorange')
                 plt.legend(['train', 'test'], loc='best')
             else:
                 plt.legend(['train'], loc='best')
+                
+            plt.xlabel('Epochs')
+            plt.ylabel(m)
             plt.tight_layout()
             plt.savefig(os.path.join(save_path, 'plt_'+ m + '_' + str(epochs) + '.pdf'))
             plt.close()
