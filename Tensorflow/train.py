@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Load data
 
-
+print('Test line')
 # Load model
 
 # Specify training parameters and start training
