@@ -8,32 +8,14 @@ import os
 import argparse
 from utils.constants import *
 from utils.utils import load_dataset, save_loss_and_accuracy_fig, plot_metrics
+from models.model_1 import *
 
 import tensorflow as tf
 
-
-def test(input_dir, output_dir):
-    print('\n\nProgram started')
-    print('Input directory: ', input_dir)
-    print('Schema: ', output_dir)
-    print('Program stopped\n\n')
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Create a ArcHydro schema')
-
-    parser.add_argument('--input_dir', metavar='path', required=True, help='path to the UCR Archive datasets')
-    parser.add_argument('--output_dir', metavar='path', required=True, help='path to save results of training')
-
-    args = parser.parse_args()
-
-    test(input_dir=args.input_dir, output_dir=args.output_dir)
-
-    # Load dataset
-    x_train, y_train, x_test, y_test, num_classes, enc = load_dataset(args.input_dir, 'ArrowHead', to_categorical=True)
+def training(dataset_name, path_out, iter):
+    path_out = path_out + dataset_name + '/' + 'iter_' + str(iter) + '/'
 
     # Load model
-    from models.model_1 import *
     input_shape = x_train.shape[1:]
     # from models.encodings import PositionalEncoding
     # x_train = PositionalEncoding()(x_train)
@@ -60,7 +42,8 @@ if __name__ == '__main__':
     end_time = time.time()
 
     # Evaluate the model
-    results = model.evaluate(x_test, y_test)
+    best_model = tf.keras.models.load_model(path_out + 'best_model.h5')
+    results = best_model.evaluate(x_test, y_test)
     results = {
         "accuracy": results[1],
         "loss":     results[0],
@@ -83,5 +66,45 @@ if __name__ == '__main__':
     # Training has ended
     os.mkdir(os.path.join(path_out, 'Done'))
 
+    return results['accuracy']
     print('New changes')
 
+
+
+
+
+
+
+
+
+if __name__ == '__main__':
+    # parser = argparse.ArgumentParser(description='Create a ArcHydro schema')
+
+    # parser.add_argument('--input_dir', metavar='path', required=True, help='path to the UCR Archive datasets')
+    # parser.add_argument('--output_dir', metavar='path', required=True, help='path to save results of training')
+
+    # args = parser.parse_args()
+
+    for dataset_name in  dataset_names:
+        # Load dataset
+        x_train, y_train, x_test, y_test, num_classes, enc = load_dataset(input_dir, dataset_name, to_categorical=True)
+        accuracies = []
+        for iter in range(1, num_terations+1):
+            acc = training(dataset_name, path_out, iter)
+            accuracies.append(acc)
+        
+            print('For the ' + dataset_name + ' and iteration number ' + str(iter) + ' accuracy performance is: ', acc)
+        print('Overall accuracies are: ', accuracies)
+
+        avg_acc = np.mean(np.array(accuracies))
+        std = np.std(np.array(accuracies))
+        res = {
+            "avg_accuracy": np.round(avg_acc, 3),
+            "std":     np.round(std, 3),
+            "num_of_iterations": num_terations
+        }
+        with open(os.path.join(path_out + dataset_name + '/', 'overall_results.json'), 'w') as fp:
+            json.dump(res, fp, indent=4)
+
+
+    

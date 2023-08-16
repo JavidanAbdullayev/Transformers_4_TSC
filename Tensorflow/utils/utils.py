@@ -150,11 +150,9 @@ def plot_metrics(history, save_path, epochs, metrics=None, with_val=True):
     if metrics == None:
         # Plot all metrics
         metrics = history.keys()
-        print('metrics: ', metrics)
     # Remove val metrics
     regex = re.compile(r'val_.*')
     metrics = [m for m in metrics if not regex.match(m)]
-    print('metrics later: ', metrics)
     for m in metrics:
         if m in history.keys():# and 'val_'+m in history.keys():
             # Plot
