@@ -9,17 +9,34 @@ import argparse
 from utils.constants import *
 from utils.utils import load_dataset, save_loss_and_accuracy_fig, plot_metrics
 from models.model_1 import *
+from models.encodings import PositionalEncoding, PositionalEncoding1D
 
 import tensorflow as tf
+
+def positional_encoding(max_len, d_model):
+    position_enc = np.array([
+        [pos / np.power(10000, 2 * (i // 2) / d_model) for i in range(d_model)]
+        if pos != 0 else np.zeros(d_model)
+        for pos in range(max_len)
+    ])
+    position_enc[:, 0::2] = np.sin(position_enc[:, 0::2])  # Apply sine to even indices
+    position_enc[:, 1::2] = np.cos(position_enc[:, 1::2])  # Apply cosine to odd indices
+    return tf.convert_to_tensor(position_enc, dtype=tf.float32)
+
 
 def training(dataset_name, path_out, iter):
     path_out = path_out + dataset_name + '/' + 'iter_' + str(iter) + '/'
 
     # Load model
+    global x_train
     input_shape = x_train.shape[1:]
-    # from models.encodings import PositionalEncoding
+    print('x_train shape 11: ', x_train.shape)
     # x_train = PositionalEncoding()(x_train)
-    model = build_model(input_shape, head_size=256, num_heads=4, ff_dim=4, num_transformer_blocks=4, mlp_units=[128], num_classes=num_classes, mlp_dropout=0.4, dropout=0.25)
+    # print('x_train shape 22:  ', x_train.shape)
+    # x_train = PositionalEncoding1D()(x_train)
+    # print('x_train shape 33:  ', x_train.shape)
+
+    model = build_model(input_shape, head_size=256, num_heads=4, ff_dim=4, num_transformer_blocks=1, mlp_units=[128], num_classes=num_classes, mlp_dropout=0.4, dropout=0.25)
     model.summary()
 
     # Specify training parameters 

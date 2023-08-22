@@ -5,13 +5,12 @@ from tensorflow.keras import layers
 import numpy as np
 
 class PositionalEncoding(layers.Layer):
-  def __init__(self, num_hiddens=1, dropout=0.5, max_len=1882, **kwargs):
+  def __init__(self, num_hiddens=1, dropout=0.5, max_len=256, **kwargs):
           super(PositionalEncoding, self).__init__()
-          self.dropout = layers.Dropout(dropout)
+          
           # Create a long enough `P`
           self.P = np.zeros((1, max_len, num_hiddens))
-          X = np.arange(max_len).reshape(-1, 1) / np.power(
-              10000, np.arange(0, num_hiddens, 2) / num_hiddens)
+          X = np.arange(max_len).reshape(-1, 1) / np.power(max_len, np.arange(0, num_hiddens, 2) / num_hiddens)
           self.P[:, :, 0::2] = np.sin(X)
           self.P[:, :, 1::2] = np.cos(X)
 
@@ -21,7 +20,7 @@ class PositionalEncoding(layers.Layer):
 
   def call(self, inputs, **kwargs):
       inputs = inputs + self.P[:, :inputs.shape[1], :]
-      return self.dropout(inputs)
+      return inputs
   
 
 class PositionalEncoding1D(Layer):
@@ -31,15 +30,31 @@ class PositionalEncoding1D(Layer):
     def build(self, input_shape):
 
         self.B, self.TS, self.C = input_shape
-
-        inv_freq = 1. / (10_000 ** (arange(0, self.C, 2, dtype="float32") / self.C))      
+        print('self.B: ', self.B,  '  self.TS: ', self.TS, '  self.C: ', self.C)
+        inv_freq = 1. / (10_000 ** (arange(0, self.C, 2, dtype="float32") / self.C))     
+        print('inv_freq: ', inv_freq.shape)
         pos_x = arange(self.TS, dtype="float32")
+        
+        inp_x = tf.einsum("i,j->ij", pos_x, inv_freq)
+        sin_inp_x = tf.math.sin(inp_x[0::2])
+        cos_inp_x = tf.math.cos(inp_x[1::2])
 
+        emb = tf.zeros((self.TS, self.C))
 
-        sin_inp_x = tf.einsum("i,j->ij", pos_x, inv_freq)
-        self.emb_x = tf.add(tf.math.sin(sin_inp_x), tf.math.cos(sin_inp_x))
-        print(">>> shape sin_inp_x", sin_inp_x.shape)
-        print(">>> shape emb_x", self.emb_x.shape)
+        even_indices = tf.range(0, self.TS, 2)
+        odd_indices = tf.range(1, self.TS, 2)
+
+        emb = tf.tensor_scatter_nd_update(emb, tf.expand_dims(even_indices, axis=1), sin_inp_x)
+        emb = tf.tensor_scatter_nd_update(emb, tf.expand_dims(odd_indices, axis=1), cos_inp_x)
+
+        self.emb_x = emb
+        # sin_inp_x = tf.einsum("i,j->ij", pos_x, inv_freq)
+        # inp_x = tf.einsum("i,j->ij", pos_x, inv_freq)
+        # sin_inp_x = tf.math.sin(inp_x)
+
+        # self.emb_x = tf.add(tf.math.sin(sin_inp_x), tf.math.cos(sin_inp_x))
+        # print(">>> shape sin_inp_x", sin_inp_x.shape)
+        # print(">>> shape emb_x", self.emb_x.shape)
 
         #emb = tf.zeros((self.TS, self.C))
         #emb[:, :self.C] = emb_x

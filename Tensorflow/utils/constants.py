@@ -1,11 +1,10 @@
-# dataset_names = ['ArrowHead', 'TwoPatterns',  'Yoga', 'Car', 'Ham']
 dataset_names = ['ArrowHead', 'Yoga', 'GunPointOldVersusYoung', 'OliveOil', 'Wine', 'InsectWingbeatSound', 'FaceAll', 'Earthquakes']
 input_dir = '/home/javidan/Codes/UCRArchive_2018'
-path_out = '/home/javidan/Codes/transformers/results/'
+path_out = '/home/javidan/Codes/results/transformers/'
 
 # Training parameters
 TRAIN_PARAMS = {
-    'epochs'      :  1500,
+    'epochs'      : 1500,
     'batch_size'  : 64,
     'optimizer'   : 'adam',
     'loss'        : 'categorical_crossentropy',
