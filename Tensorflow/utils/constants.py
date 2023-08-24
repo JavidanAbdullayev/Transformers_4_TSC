@@ -11,4 +11,6 @@ TRAIN_PARAMS = {
     'metrics'     : ['categorical_accuracy']
  }
 
+seq_len = 8
+
 num_terations = 5

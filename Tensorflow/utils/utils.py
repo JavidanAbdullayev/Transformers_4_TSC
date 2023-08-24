@@ -118,6 +118,32 @@ def load_dataset(input_dir, dataset_name, to_categorical=True):
     return x_train, y_train, x_test, y_test, num_classes, enc
 
 
+def padd_timeseries(data, seq_len):
+    """
+    Copy last element of each example to make number of timestamps even number
+
+    Args:
+        data (numpy ndarray): train or test data features
+
+    Returns:
+        (data): with a stacked column
+    """    
+    # rem = data.shape[1] % step_size
+    # if rem != 0:
+    #     last_col = data[:, -rem].reshape(data.shape[0], 1, 1)
+    #     data = np.hstack((data, last_col))
+    #     data = data.reshape(data.shape[0], data.shape[1]//step_size, step_size)
+
+    rem = data.shape[1] % seq_len
+    if rem != 0:
+        last_col = data[:, -1]
+        last_col = np.repeat(last_col, (seq_len - rem)).reshape(data.shape[0], seq_len - rem, 1)
+        data = np.hstack((data, last_col))
+        data = data.reshape(data.shape[0], data.shape[1]//seq_len, seq_len)
+
+    return data
+
+
 
 def save_loss_and_accuracy_fig(history, epochs, path):
     import matplotlib.pyplot as plt

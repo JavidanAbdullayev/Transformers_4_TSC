@@ -7,7 +7,7 @@ import json
 import os
 import argparse
 from utils.constants import *
-from utils.utils import load_dataset, save_loss_and_accuracy_fig, plot_metrics
+from utils.utils import load_dataset, save_loss_and_accuracy_fig, plot_metrics, padd_timeseries
 from models.model_1 import *
 from models.encodings import PositionalEncoding, PositionalEncoding1D
 
@@ -84,13 +84,6 @@ def training(dataset_name, path_out, iter):
     os.mkdir(os.path.join(path_out, 'Done'))
 
     return results['accuracy']
-    print('New changes')
-
-
-
-
-
-
 
 
 
@@ -105,6 +98,13 @@ if __name__ == '__main__':
     for dataset_name in  dataset_names:
         # Load dataset
         x_train, y_train, x_test, y_test, num_classes, enc = load_dataset(input_dir, dataset_name, to_categorical=True)
+        # padd x_train and x_test if needed
+        x_train = padd_timeseries(x_train, seq_len=seq_len)        
+        x_test = padd_timeseries(x_test, seq_len=seq_len)
+        
+        print('x_train.shape:  ', x_train.shape)
+        print('x_test.shape:  ', x_test.shape)
+
         accuracies = []
         for iter in range(1, num_terations+1):
             acc = training(dataset_name, path_out, iter)
